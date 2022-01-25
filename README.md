@@ -1,2 +1,2 @@
 # YamlConfiguration
-Read yaml with comments
+Read and write yaml with comments
