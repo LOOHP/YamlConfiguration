@@ -47,8 +47,12 @@
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <relocations>
                                 <relocation>
-                                    <pattern>org.yaml</pattern>
-                                    <shadedPattern>com.loohp.bukkitconfiguration.libs.org.yaml</shadedPattern>
+                                    <pattern>javax.json</pattern>
+                                    <shadedPattern>com.loohp.yamlconfiguration.libs.javax.json</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.amihaiemil</pattern>
+                                    <shadedPattern>com.loohp.yamlconfiguration.libs.com.amihaiemil</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
