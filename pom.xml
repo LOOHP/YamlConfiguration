@@ -104,7 +104,7 @@
         <dependency>
             <groupId>com.github.LOOHP</groupId>
             <artifactId>eo-yaml</artifactId>
-            <version>ed369de3a8</version>
+            <version>a534c808f4</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
