@@ -93,11 +93,18 @@
         </plugins>
     </build>
 
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
-            <groupId>com.amihaiemil.web</groupId>
+            <groupId>com.github.LOOHP</groupId>
             <artifactId>eo-yaml</artifactId>
-            <version>6.0.1</version>
+            <version>ed369de3a8</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

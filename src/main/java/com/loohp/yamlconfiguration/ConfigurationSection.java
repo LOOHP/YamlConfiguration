@@ -5,7 +5,6 @@ import com.amihaiemil.eoyaml.Scalar;
 import com.amihaiemil.eoyaml.ScalarComment;
 import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
-import com.amihaiemil.eoyaml.YamlMappingBuilder;
 import com.amihaiemil.eoyaml.YamlNode;
 import com.amihaiemil.eoyaml.YamlSequence;
 import com.amihaiemil.eoyaml.YamlSequenceBuilder;
@@ -13,7 +12,6 @@ import com.amihaiemil.eoyaml.YamlSequenceBuilder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -333,6 +331,11 @@ public class ConfigurationSection implements IConfigurationSection {
         return sequence.values().stream().map(each -> Short.parseShort(each.asScalar().value())).collect(Collectors.toList());
     }
 
+    @Override
+    public String toString() {
+        return currentMapping.toString();
+    }
+
     protected YamlNode getNode(String path) {
         String[] paths = toPathArray(path);
         YamlNode node = currentMapping;
@@ -379,8 +382,9 @@ public class ConfigurationSection implements IConfigurationSection {
     }
 
     protected List<Object> extractList(YamlSequence sequence) {
-        List<Object> list = new LinkedList<>();
-        for (YamlNode node : sequence.values()) {
+        Collection<YamlNode> values = sequence.values();
+        List<Object> list = new ArrayList<>(values.size());
+        for (YamlNode node : values) {
             if (node instanceof Scalar) {
                 list.add(((Scalar) node).value());
             } else if (node instanceof YamlSequence) {
