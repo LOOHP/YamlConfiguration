@@ -8,6 +8,7 @@ import com.amihaiemil.eoyaml.YamlMapping;
 import com.amihaiemil.eoyaml.YamlNode;
 import com.amihaiemil.eoyaml.YamlSequence;
 import com.amihaiemil.eoyaml.YamlSequenceBuilder;
+import com.loohp.yamlconfiguration.utils.UnicodeUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -97,7 +98,7 @@ public class ConfigurationSection implements IConfigurationSection {
         if (node == null) {
             return null;
         }
-        return node.comment().value();
+        return UnicodeUtils.unescape(node.comment().value());
     }
 
     @Override
@@ -108,7 +109,7 @@ public class ConfigurationSection implements IConfigurationSection {
         }
         Comment comment = node.comment();
         if (comment instanceof ScalarComment) {
-            return ((ScalarComment) comment).inline().value();
+            return UnicodeUtils.unescape(((ScalarComment) comment).inline().value());
         }
         return "";
     }
@@ -129,14 +130,21 @@ public class ConfigurationSection implements IConfigurationSection {
 
     @Override
     public Object get(String path, Object def) {
-        Scalar scalar = getScalar(path);
-        return scalar == null ? def : scalar.value();
+        YamlNode node = getNode(path);
+        if (node instanceof Scalar) {
+            return UnicodeUtils.unescape(((Scalar) node).value());
+        } else if (node instanceof YamlSequence) {
+            return getList(path);
+        } else if (node instanceof YamlMapping) {
+            return getConfigurationSection(path);
+        }
+        return def;
     }
 
     @Override
     public String getString(String path, String def) {
         Scalar scalar = getScalar(path);
-        return scalar == null ? def : scalar.value();
+        return scalar == null ? def : UnicodeUtils.unescape(scalar.value());
     }
 
     @Override
@@ -248,7 +256,7 @@ public class ConfigurationSection implements IConfigurationSection {
         if (sequence == null) {
             return null;
         }
-        return sequence.values().stream().map(each -> each.asScalar().value()).collect(Collectors.toList());
+        return sequence.values().stream().map(each -> UnicodeUtils.unescape(each.asScalar().value())).collect(Collectors.toList());
     }
 
     @Override
@@ -319,7 +327,7 @@ public class ConfigurationSection implements IConfigurationSection {
         if (sequence == null) {
             return null;
         }
-        return sequence.values().stream().map(each -> each.asScalar().value().toCharArray()[0]).collect(Collectors.toList());
+        return sequence.values().stream().map(each -> UnicodeUtils.unescape(each.asScalar().value()).toCharArray()[0]).collect(Collectors.toList());
     }
 
     @Override
@@ -386,7 +394,7 @@ public class ConfigurationSection implements IConfigurationSection {
         List<Object> list = new ArrayList<>(values.size());
         for (YamlNode node : values) {
             if (node instanceof Scalar) {
-                list.add(((Scalar) node).value());
+                list.add(UnicodeUtils.unescape(((Scalar) node).value()));
             } else if (node instanceof YamlSequence) {
                 list.add(extractList((YamlSequence) node));
             } else if (node instanceof YamlMapping) {

@@ -20,7 +20,7 @@ public class YamlConfiguration extends RootConfigurationSection {
     private File file;
 
     public YamlConfiguration(File file, boolean guessIndentation) throws IOException {
-        super(Yaml.createYamlInput(file, guessIndentation).readYamlMapping());
+        super(Yaml.createYamlInput(file, StandardCharsets.UTF_8, guessIndentation).readYamlMapping());
         this.file = file;
     }
 
@@ -29,7 +29,7 @@ public class YamlConfiguration extends RootConfigurationSection {
     }
 
     public YamlConfiguration(InputStream inputStream, boolean guessIndentation) throws IOException {
-        super(Yaml.createYamlInput(inputStream, guessIndentation).readYamlMapping());
+        super(Yaml.createYamlInput(inputStream, StandardCharsets.UTF_8, guessIndentation).readYamlMapping());
         this.file = null;
     }
 
@@ -56,17 +56,9 @@ public class YamlConfiguration extends RootConfigurationSection {
     }
 
     public void save(File file) {
-        try (PrintWriter pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
-            save(pw);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void save(OutputStream output) {
-        try (PrintWriter pw = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8))) {
-            save(pw);
-        } catch (IOException e) {
+        try {
+            save(new FileOutputStream(file));
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
     }
@@ -76,6 +68,14 @@ public class YamlConfiguration extends RootConfigurationSection {
             throw new UncheckedIOException(new FileNotFoundException("This YamlConfiguration is not created with a file"));
         }
         save(file);
+    }
+
+    public void save(OutputStream output) {
+        try (PrintWriter pw = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8))) {
+            save(pw);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void save(Writer writer) throws IOException {

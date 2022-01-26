@@ -24,33 +24,37 @@ public class RootConfigurationSection extends ConfigurationSection {
             super.set(path, value);
             return;
         }
-        String comment = "";
-        YamlNode currentNode = getNode(path);
-        if (currentNode != null) {
-            comment = currentNode.comment().value();
-        }
         YamlNode newNode;
-        if (value instanceof Collection) {
-            newNode = createSequence((Collection<?>) value).build(comment);
-        } else if (value instanceof RootConfigurationSection && ((RootConfigurationSection) value).isRoot()) {
-            if (value == this) {
-                throw new IllegalStateException("RootConfigurationSection cannot be nested into self");
-            }
-            YamlMappingBuilder builder = Yaml.createYamlMappingBuilder();
-            RootConfigurationSection section = (RootConfigurationSection) value;
-            YamlMapping mapping = section.currentMapping;
-            for (YamlNode key : mapping.keys()) {
-                builder = builder.add(key, mapping.value(key));
-            }
-            newNode = builder.build(comment);
-            section.root = this;
-            section.currentPath = path;
+        if (value == null) {
+            newNode = null;
         } else {
-            String inlineComment = "";
-            if (currentNode != null && currentNode.comment() instanceof ScalarComment) {
-                inlineComment = ((ScalarComment) currentNode.comment()).inline().value();
+            String comment = "";
+            YamlNode currentNode = getNode(path);
+            if (currentNode != null) {
+                comment = currentNode.comment().value();
             }
-            newNode = Yaml.createYamlScalarBuilder().addLine(value.toString()).buildPlainScalar(comment, inlineComment);
+            if (value instanceof Collection) {
+                newNode = createSequence((Collection<?>) value).build(comment);
+            } else if (value instanceof RootConfigurationSection && ((RootConfigurationSection) value).isRoot()) {
+                if (value == this) {
+                    throw new IllegalStateException("RootConfigurationSection cannot be nested into self");
+                }
+                YamlMappingBuilder builder = Yaml.createYamlMappingBuilder();
+                RootConfigurationSection section = (RootConfigurationSection) value;
+                YamlMapping mapping = section.currentMapping;
+                for (YamlNode key : mapping.keys()) {
+                    builder = builder.add(key, mapping.value(key));
+                }
+                newNode = builder.build(comment);
+                section.root = this;
+                section.currentPath = path;
+            } else {
+                String inlineComment = "";
+                if (currentNode != null && currentNode.comment() instanceof ScalarComment) {
+                    inlineComment = ((ScalarComment) currentNode.comment()).inline().value();
+                }
+                newNode = Yaml.createYamlScalarBuilder().addLine(value.toString()).buildPlainScalar(comment, inlineComment);
+            }
         }
         String[] paths = toPathArray(path);
         YamlMapping mapping = Yaml.createYamlMappingBuilder().add(paths[paths.length - 1], newNode).build();

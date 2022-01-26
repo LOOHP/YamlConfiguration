@@ -5,7 +5,7 @@
     <groupId>com.loohp</groupId>
     <artifactId>YamlConfiguration</artifactId>
     <name>YamlConfiguration</name>
-    <version>1.0.0.0</version>
+    <version>1.0.0.1</version>
 
     <packaging>jar</packaging>
 
@@ -104,7 +104,7 @@
         <dependency>
             <groupId>com.github.LOOHP</groupId>
             <artifactId>eo-yaml</artifactId>
-            <version>a534c808f4</version>
+            <version>18f934ce44</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
