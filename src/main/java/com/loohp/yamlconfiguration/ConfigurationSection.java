@@ -132,7 +132,7 @@ public class ConfigurationSection implements IConfigurationSection {
     public Object get(String path, Object def) {
         YamlNode node = getNode(path);
         if (node instanceof Scalar) {
-            return UnicodeUtils.unescape(((Scalar) node).value());
+            return UnicodeUtils.unescape((Scalar) node);
         } else if (node instanceof YamlSequence) {
             return getList(path);
         } else if (node instanceof YamlMapping) {
@@ -144,7 +144,7 @@ public class ConfigurationSection implements IConfigurationSection {
     @Override
     public String getString(String path, String def) {
         Scalar scalar = getScalar(path);
-        return scalar == null ? def : UnicodeUtils.unescape(scalar.value());
+        return scalar == null ? def : UnicodeUtils.unescape(scalar);
     }
 
     @Override
@@ -256,7 +256,7 @@ public class ConfigurationSection implements IConfigurationSection {
         if (sequence == null) {
             return null;
         }
-        return sequence.values().stream().map(each -> UnicodeUtils.unescape(each.asScalar().value())).collect(Collectors.toList());
+        return sequence.values().stream().map(each -> UnicodeUtils.unescape(each.asScalar())).collect(Collectors.toList());
     }
 
     @Override
@@ -327,7 +327,7 @@ public class ConfigurationSection implements IConfigurationSection {
         if (sequence == null) {
             return null;
         }
-        return sequence.values().stream().map(each -> UnicodeUtils.unescape(each.asScalar().value()).toCharArray()[0]).collect(Collectors.toList());
+        return sequence.values().stream().map(each -> UnicodeUtils.unescape(each.asScalar()).toCharArray()[0]).collect(Collectors.toList());
     }
 
     @Override
@@ -394,7 +394,7 @@ public class ConfigurationSection implements IConfigurationSection {
         List<Object> list = new ArrayList<>(values.size());
         for (YamlNode node : values) {
             if (node instanceof Scalar) {
-                list.add(UnicodeUtils.unescape(((Scalar) node).value()));
+                list.add(UnicodeUtils.unescape((Scalar) node));
             } else if (node instanceof YamlSequence) {
                 list.add(extractList((YamlSequence) node));
             } else if (node instanceof YamlMapping) {
