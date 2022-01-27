@@ -15,12 +15,17 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ConfigurationSection implements IConfigurationSection {
 
     public static ConfigurationSection newConfigurationSection() {
         return new RootConfigurationSection(Yaml.createYamlMappingBuilder().build());
+    }
+
+    public static ConfigurationSection newConfigurationSection(ConfigurationSection section) {
+        return new RootConfigurationSection(section.currentMapping);
     }
 
     protected RootConfigurationSection root;
@@ -34,27 +39,34 @@ public class ConfigurationSection implements IConfigurationSection {
     }
 
     public boolean isRoot() {
-        return root == null || root == this;
+        return false;
+    }
+
+    public boolean fromExistingYaml() {
+        if (root == this) {
+            return false;
+        }
+        return root.fromExistingYaml();
     }
 
     @Override
     public void set(String path, Object value) {
         root.set(toFullPath(path), value);
-        currentMapping = root.getConfigurationSection(currentPath).currentMapping;
     }
 
     @Override
     public List<String> getKeys(boolean recursive) {
         if (recursive) {
-            List<String> keys = new ArrayList<>();
-            for (YamlNode node : currentMapping.keys()) {
+            Set<YamlNode> keys = currentMapping.keys();
+            List<String> recursiveKeys = new ArrayList<>(keys.size());
+            for (YamlNode node : keys) {
                 String key = node.asScalar().value();
-                keys.add(key);
+                recursiveKeys.add(key);
                 if (isConfigurationSection(key)) {
-                    keys.addAll(getConfigurationSection(key).getKeys(true).stream().map(each -> key + "." + each).collect(Collectors.toList()));
+                    recursiveKeys.addAll(getConfigurationSection(key).getKeys(true).stream().map(each -> key + "." + each).collect(Collectors.toList()));
                 }
             }
-            return keys;
+            return recursiveKeys;
         } else {
             return currentMapping.keys().stream().map(each -> each.asScalar().value()).collect(Collectors.toList());
         }
@@ -83,13 +95,11 @@ public class ConfigurationSection implements IConfigurationSection {
     @Override
     public void setAboveComment(String path, String comment) {
         root.setAboveComment(toFullPath(path), comment);
-        currentMapping = root.getConfigurationSection(currentPath).currentMapping;
     }
 
     @Override
     public void setInlineComment(String path, String comment) {
         root.setInlineComment(toFullPath(path), comment);
-        currentMapping = root.getConfigurationSection(currentPath).currentMapping;
     }
 
     @Override
@@ -120,7 +130,7 @@ public class ConfigurationSection implements IConfigurationSection {
         if (mapping == null) {
             return null;
         }
-        return new ConfigurationSection(root, toFullPath(path), mapping);
+        return root.createOrGetSubsection(toFullPath(path), mapping);
     }
 
     @Override
@@ -337,6 +347,10 @@ public class ConfigurationSection implements IConfigurationSection {
             return null;
         }
         return sequence.values().stream().map(each -> Short.parseShort(each.asScalar().value())).collect(Collectors.toList());
+    }
+
+    protected void toSubsection(RootConfigurationSection root, String currentPath) {
+        //do nothing
     }
 
     @Override

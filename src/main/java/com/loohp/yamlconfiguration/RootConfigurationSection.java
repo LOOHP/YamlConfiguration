@@ -10,12 +10,29 @@ import com.amihaiemil.eoyaml.YamlSequence;
 import com.amihaiemil.eoyaml.YamlSequenceBuilder;
 import com.amihaiemil.eoyaml.extensions.MergedYamlMapping;
 
+import java.lang.ref.WeakReference;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class RootConfigurationSection extends ConfigurationSection {
 
+    private Map<String, WeakReference<ConfigurationSection>> createdSubsections;
+    private ReentrantLock lock;
+
     protected RootConfigurationSection(YamlMapping rootMapping) {
         super(null, "", rootMapping);
+        this.root = this;
+        this.createdSubsections = new HashMap<>();
+        this.lock = new ReentrantLock(true);
+    }
+
+    @Override
+    public boolean isRoot() {
+        return root == this;
     }
 
     @Override
@@ -24,6 +41,7 @@ public class RootConfigurationSection extends ConfigurationSection {
             super.set(path, value);
             return;
         }
+        lock.lock();
         YamlNode newNode;
         if (value == null) {
             newNode = null;
@@ -35,19 +53,23 @@ public class RootConfigurationSection extends ConfigurationSection {
             }
             if (value instanceof Collection) {
                 newNode = createSequence((Collection<?>) value).build(comment);
-            } else if (value instanceof RootConfigurationSection && ((RootConfigurationSection) value).isRoot()) {
-                if (value == this) {
-                    throw new IllegalStateException("RootConfigurationSection cannot be nested into self");
+            } else if (value instanceof ConfigurationSection) {
+                ConfigurationSection section = (ConfigurationSection) value;
+                if (section == this) {
+                    lock.unlock();
+                    throw new IllegalStateException("ConfigurationSection cannot be nested into self");
+                }
+                if (section.fromExistingYaml()) {
+                    lock.unlock();
+                    throw new IllegalStateException("ConfigurationSection from an existing Yaml cannot be set into another Yaml");
                 }
                 YamlMappingBuilder builder = Yaml.createYamlMappingBuilder();
-                RootConfigurationSection section = (RootConfigurationSection) value;
                 YamlMapping mapping = section.currentMapping;
                 for (YamlNode key : mapping.keys()) {
                     builder = builder.add(key, mapping.value(key));
                 }
                 newNode = builder.build(comment);
-                section.root = this;
-                section.currentPath = path;
+                section.toSubsection(this, path);
             } else {
                 String inlineComment = "";
                 if (currentNode != null && currentNode.comment() instanceof ScalarComment) {
@@ -62,6 +84,8 @@ public class RootConfigurationSection extends ConfigurationSection {
             mapping = Yaml.createYamlMappingBuilder().add(paths[i], mapping).build();
         }
         currentMapping = new MergedYamlMapping(currentMapping, mapping, true);
+        remapSubsections();
+        lock.unlock();
     }
 
     @Override
@@ -70,6 +94,7 @@ public class RootConfigurationSection extends ConfigurationSection {
             super.setAboveComment(path, comment);
             return;
         }
+        lock.lock();
         if (comment == null) {
             comment = "";
         }
@@ -103,6 +128,8 @@ public class RootConfigurationSection extends ConfigurationSection {
             mapping = Yaml.createYamlMappingBuilder().add(paths[i], mapping).build();
         }
         currentMapping = new MergedYamlMapping(currentMapping, mapping, true);
+        remapSubsections();
+        lock.unlock();
     }
 
     @Override
@@ -111,6 +138,7 @@ public class RootConfigurationSection extends ConfigurationSection {
             super.setInlineComment(path, comment);
             return;
         }
+        lock.lock();
         if (comment == null) {
             comment = "";
         }
@@ -124,6 +152,63 @@ public class RootConfigurationSection extends ConfigurationSection {
             mapping = Yaml.createYamlMappingBuilder().add(paths[i], mapping).build();
         }
         currentMapping = new MergedYamlMapping(currentMapping, mapping, true);
+        remapSubsections();
+        lock.unlock();
+    }
+
+    @Override
+    protected void toSubsection(RootConfigurationSection root, String currentPath) {
+        if (!isRoot()) {
+            super.toSubsection(root, currentPath);
+            return;
+        }
+        lock.lock();
+        this.root = root;
+        this.currentPath = currentPath;
+        for (Entry<String, WeakReference<ConfigurationSection>> entry : this.createdSubsections.entrySet()) {
+            String fullPath = toFullPath(entry.getKey());
+            WeakReference<ConfigurationSection> reference = entry.getValue();
+            ConfigurationSection subsection = reference.get();
+            if (subsection != null) {
+                subsection.currentPath = fullPath;
+                root.createdSubsections.put(fullPath, reference);
+            }
+        }
+        this.createdSubsections = null;
+        lock.unlock();
+        this.lock = null;
+    }
+
+    protected ConfigurationSection createOrGetSubsection(String path, YamlMapping mapping) {
+        if (!isRoot()) {
+            throw new IllegalStateException("This RootConfigurationSection is no longer root.");
+        }
+        if (path.isEmpty()) {
+            return this;
+        }
+        lock.lock();
+        WeakReference<ConfigurationSection> reference = createdSubsections.get(path);
+        ConfigurationSection section;
+        if (reference == null || (section = reference.get()) == null) {
+            createdSubsections.put(path, new WeakReference<>(section = new ConfigurationSection(this, path, mapping)));
+        }
+        lock.unlock();
+        return section;
+    }
+
+    protected void remapSubsections() {
+        lock.lock();
+        Iterator<Entry<String, WeakReference<ConfigurationSection>>> itr = createdSubsections.entrySet().iterator();
+        while (itr.hasNext()) {
+            Entry<String, WeakReference<ConfigurationSection>> entry = itr.next();
+            ConfigurationSection section = entry.getValue().get();
+            if (section == null) {
+                itr.remove();
+            } else {
+                section.currentMapping = getMapping(entry.getKey());
+            }
+        }
+        lock.unlock();
     }
 
 }

@@ -49,10 +49,10 @@ public class UnicodeUtils {
     }
 
     public static String unescape(String str) {
-        StringWriter out = new StringWriter();
         if (str == null) {
             return null;
         }
+        StringWriter out = new StringWriter();
         int sz = str.length();
         StringBuilder unicode = new StringBuilder(4);
         boolean hadSlash = false;

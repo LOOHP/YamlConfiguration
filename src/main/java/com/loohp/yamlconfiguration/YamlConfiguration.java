@@ -37,6 +37,11 @@ public class YamlConfiguration extends RootConfigurationSection {
         this(inputStream, true);
     }
 
+    @Override
+    public boolean fromExistingYaml() {
+        return true;
+    }
+
     public boolean hasFile() {
         return file != null;
     }
