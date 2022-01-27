@@ -1,5 +1,5 @@
 # YamlConfiguration
-Read and write commented yaml with [Bukkit Configuration API](https://bukkit.org/threads/tut-bukkits-new-fileconfiguration-api-create-a-yaml-configuration.42775/) style wrapper backed by a modified version of [eo-yaml](https://github.com/decorators-squad/eo-yaml).
+Read and write commented yaml with [Bukkit Configuration API](https://bukkit.org/threads/tut-bukkits-new-fileconfiguration-api-create-a-yaml-configuration.42775/) style wrapper backed by a [modified version](https://github.com/LOOHP/eo-yaml) of [eo-yaml](https://github.com/decorators-squad/eo-yaml).
 
 ## Builds
 
