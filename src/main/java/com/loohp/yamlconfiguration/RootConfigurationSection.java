@@ -9,11 +9,14 @@ import com.amihaiemil.eoyaml.YamlNode;
 import com.amihaiemil.eoyaml.YamlSequence;
 import com.amihaiemil.eoyaml.YamlSequenceBuilder;
 import com.amihaiemil.eoyaml.extensions.MergedYamlMapping;
+import com.loohp.yamlconfiguration.utils.UnicodeUtils;
 
 import java.lang.ref.WeakReference;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantLock;
@@ -42,10 +45,60 @@ public class RootConfigurationSection extends ConfigurationSection {
             return;
         }
         lock.lock();
-        YamlNode newNode;
         if (value == null) {
-            newNode = null;
+            String[] paths = toPathArray(path);
+            if (paths.length < 1) {
+                currentMapping = Yaml.createYamlMappingBuilder().build();
+            } else if (paths.length < 2) {
+                YamlMappingBuilder builder = Yaml.createYamlMappingBuilder();
+                for (YamlNode key : currentMapping.keys()) {
+                    if (!key.asScalar().value().equals(paths[paths.length - 1])) {
+                        builder = builder.add(key, currentMapping.value(key));
+                    }
+                }
+                currentMapping = builder.build();
+            } else {
+                LinkedList<String> pathSections = new LinkedList<>(Arrays.asList(paths));
+                String sectionKey = pathSections.removeLast();
+                YamlMapping section = getMapping(fromPathList(pathSections));
+                if (section != null) {
+                    YamlMappingBuilder builder = Yaml.createYamlMappingBuilder();
+                    for (YamlNode key : section.keys()) {
+                        if (!key.asScalar().value().equals(sectionKey)) {
+                            builder = builder.add(key, section.value(key));
+                        }
+                    }
+                    YamlMapping mapping = builder.build(section.comment().value());
+                    for (int i = paths.length - 3; i >= 0; i--) {
+                        sectionKey = pathSections.removeLast();
+                        builder = Yaml.createYamlMappingBuilder();
+                        section = getMapping(fromPathList(pathSections));
+                        for (YamlNode key : section.keys()) {
+                            if (key.asScalar().value().equals(sectionKey)) {
+                                builder = builder.add(key, mapping);
+                            } else {
+                                builder = builder.add(key, section.value(key));
+                            }
+                        }
+                        mapping = Yaml.createYamlMappingBuilder().add(paths[i], builder.build(section.comment().value())).build();
+                    }
+                    sectionKey = pathSections.removeLast();
+                    builder = Yaml.createYamlMappingBuilder();
+                    for (YamlNode key : currentMapping.keys()) {
+                        if (key.asScalar().value().equals(sectionKey)) {
+                            builder = builder.add(key, mapping.value(key));
+                        } else {
+                            builder = builder.add(key, currentMapping.value(key));
+                        }
+                    }
+                    currentMapping = builder.build(currentMapping.comment().value());
+                }
+            }
         } else {
+            YamlNode newNode;
+            if (value instanceof String) {
+                value = UnicodeUtils.escape((String) value);
+            }
             String comment = "";
             YamlNode currentNode = getNode(path);
             if (currentNode != null) {
@@ -77,13 +130,13 @@ public class RootConfigurationSection extends ConfigurationSection {
                 }
                 newNode = Yaml.createYamlScalarBuilder().addLine(value.toString()).buildPlainScalar(comment, inlineComment);
             }
+            String[] paths = toPathArray(path);
+            YamlMapping mapping = Yaml.createYamlMappingBuilder().add(paths[paths.length - 1], newNode).build();
+            for (int i = paths.length - 2; i >= 0; i--) {
+                mapping = Yaml.createYamlMappingBuilder().add(paths[i], mapping).build();
+            }
+            currentMapping = new MergedYamlMapping(currentMapping, mapping, true);
         }
-        String[] paths = toPathArray(path);
-        YamlMapping mapping = Yaml.createYamlMappingBuilder().add(paths[paths.length - 1], newNode).build();
-        for (int i = paths.length - 2; i >= 0; i--) {
-            mapping = Yaml.createYamlMappingBuilder().add(paths[i], mapping).build();
-        }
-        currentMapping = new MergedYamlMapping(currentMapping, mapping, true);
         remapSubsections();
         lock.unlock();
     }
@@ -94,10 +147,12 @@ public class RootConfigurationSection extends ConfigurationSection {
             super.setAboveComment(path, comment);
             return;
         }
-        lock.lock();
         if (comment == null) {
             comment = "";
+        } else {
+            comment = UnicodeUtils.escape(comment);
         }
+        lock.lock();
         YamlNode currentNode = getNode(path);
         if (currentNode == null) {
             return;
@@ -138,10 +193,12 @@ public class RootConfigurationSection extends ConfigurationSection {
             super.setInlineComment(path, comment);
             return;
         }
-        lock.lock();
         if (comment == null) {
             comment = "";
+        } else {
+            comment = UnicodeUtils.escape(comment);
         }
+        lock.lock();
         Scalar currentNode = getScalar(path);
         if (currentNode == null) {
             return;

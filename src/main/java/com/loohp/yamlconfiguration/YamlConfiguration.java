@@ -1,6 +1,7 @@
 package com.loohp.yamlconfiguration;
 
 import com.amihaiemil.eoyaml.Yaml;
+import com.loohp.yamlconfiguration.utils.FixerUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -19,18 +20,26 @@ public class YamlConfiguration extends RootConfigurationSection {
 
     private File file;
 
-    public YamlConfiguration(File file, boolean guessIndentation) throws IOException {
-        super(Yaml.createYamlInput(file, StandardCharsets.UTF_8, guessIndentation).readYamlMapping());
+    public YamlConfiguration(File file, boolean guessIndentation, boolean fixValues) throws IOException {
+        super(Yaml.createYamlInput(fixValues ? FixerUtils.fixYaml(file) : file, StandardCharsets.UTF_8, guessIndentation).readYamlMapping());
         this.file = file;
+    }
+
+    public YamlConfiguration(File file, boolean guessIndentation) throws IOException {
+        this(file, true, true);
     }
 
     public YamlConfiguration(File file) throws IOException {
         this(file, true);
     }
 
-    public YamlConfiguration(InputStream inputStream, boolean guessIndentation) throws IOException {
-        super(Yaml.createYamlInput(inputStream, StandardCharsets.UTF_8, guessIndentation).readYamlMapping());
+    public YamlConfiguration(InputStream inputStream, boolean guessIndentation, boolean fixValues) throws IOException {
+        super(Yaml.createYamlInput(fixValues ? FixerUtils.fixYaml(inputStream) : inputStream, StandardCharsets.UTF_8, guessIndentation).readYamlMapping());
         this.file = null;
+    }
+
+    public YamlConfiguration(InputStream inputStream, boolean guessIndentation) throws IOException {
+        this(inputStream, true, true);
     }
 
     public YamlConfiguration(InputStream inputStream) throws IOException {

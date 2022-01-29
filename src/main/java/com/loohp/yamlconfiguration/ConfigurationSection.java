@@ -362,7 +362,7 @@ public class ConfigurationSection implements IConfigurationSection {
         String[] paths = toPathArray(path);
         YamlNode node = currentMapping;
         for (String p : paths) {
-            if (node == null) {
+            if (!(node instanceof YamlMapping)) {
                 return null;
             }
             node = node.asMapping().value(p);
@@ -427,6 +427,8 @@ public class ConfigurationSection implements IConfigurationSection {
                 builder = builder.add(createSequence((Collection<?>) obj).build());
             } else if (obj instanceof RootConfigurationSection && ((RootConfigurationSection) obj).isRoot()) {
                 builder = builder.add(((RootConfigurationSection) obj).currentMapping);
+            } else if (obj instanceof String) {
+                builder = builder.add(UnicodeUtils.escape((String) obj));
             } else {
                 builder = builder.add(obj.toString());
             }
@@ -442,10 +444,17 @@ public class ConfigurationSection implements IConfigurationSection {
     }
 
     protected String[] toPathArray(String path) {
+        if (path.isEmpty()) {
+            return new String[0];
+        }
         return path.split("\\.");
     }
 
     protected String fromPathArray(String[] paths) {
+        return String.join(".", paths);
+    }
+
+    protected String fromPathList(List<String> paths) {
         return String.join(".", paths);
     }
 
