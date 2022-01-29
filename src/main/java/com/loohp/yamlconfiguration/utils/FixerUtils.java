@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 
 public class FixerUtils {
 
-    public static final Pattern QUOTE_PATTERN = Pattern.compile("^( *(?:(?:- +)|(?:[^:]*: +)))(.*)$");
+    public static final Pattern QUOTE_PATTERN = Pattern.compile("^( *(?:(?:- +)|(?:[^:]*: +)))([^ ].*)$");
     public static final Pattern QUOTE_STRING_PATTERN = Pattern.compile("^(.*?)( #.*)?$");
 
     public static File fixYaml(File file) {

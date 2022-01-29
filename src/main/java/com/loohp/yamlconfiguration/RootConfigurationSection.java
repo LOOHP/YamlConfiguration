@@ -149,8 +149,6 @@ public class RootConfigurationSection extends ConfigurationSection {
         }
         if (comment == null) {
             comment = "";
-        } else {
-            comment = UnicodeUtils.escape(comment);
         }
         lock.lock();
         YamlNode currentNode = getNode(path);
@@ -195,8 +193,6 @@ public class RootConfigurationSection extends ConfigurationSection {
         }
         if (comment == null) {
             comment = "";
-        } else {
-            comment = UnicodeUtils.escape(comment);
         }
         lock.lock();
         Scalar currentNode = getScalar(path);

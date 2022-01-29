@@ -108,7 +108,7 @@ public class ConfigurationSection implements IConfigurationSection {
         if (node == null) {
             return null;
         }
-        return UnicodeUtils.unescape(node.comment().value());
+        return node.comment().value();
     }
 
     @Override
@@ -119,7 +119,7 @@ public class ConfigurationSection implements IConfigurationSection {
         }
         Comment comment = node.comment();
         if (comment instanceof ScalarComment) {
-            return UnicodeUtils.unescape(((ScalarComment) comment).inline().value());
+            return ((ScalarComment) comment).inline().value();
         }
         return "";
     }
