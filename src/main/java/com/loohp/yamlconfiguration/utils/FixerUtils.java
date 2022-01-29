@@ -82,7 +82,7 @@ public class FixerUtils {
         Matcher matcher = QUOTE_STRING_PATTERN.matcher(str);
         StringBuffer sb = new StringBuffer();
         while (matcher.find()) {
-            String part1 = "\"" + matcher.group(1).replaceAll("[\\\\\\'\\\"](?!(?:u[0-9a-fA-F]{4})|(?:[ertpafv]))", "\\\\$0") + "\"";
+            String part1 = "\"" + matcher.group(1).replaceAll("[\\\\\\'\\\"](?!(?:u[0-9a-fA-F]{4})|(?:[ertpafv0]))", "\\\\$0") + "\"";
             String part2 = matcher.group(2);
             if (part2 == null) {
                 part2 = "";
