@@ -337,7 +337,14 @@ public class ConfigurationSection implements IConfigurationSection {
         if (sequence == null) {
             return null;
         }
-        return sequence.values().stream().map(each -> UnicodeUtils.unescape(each.asScalar()).toCharArray()[0]).collect(Collectors.toList());
+        return sequence.values().stream().map(each -> {
+            String value = UnicodeUtils.unescape(each.asScalar());
+            char[] chars = value.toCharArray();
+            if (chars.length == 1) {
+                return chars[0];
+            }
+            throw new IllegalArgumentException(value + " is not a character");
+        }).collect(Collectors.toList());
     }
 
     @Override
@@ -355,7 +362,7 @@ public class ConfigurationSection implements IConfigurationSection {
 
     @Override
     public String toString() {
-        return currentMapping.toString();
+        return getValues(true).toString();
     }
 
     protected YamlNode getNode(String path) {
@@ -372,9 +379,6 @@ public class ConfigurationSection implements IConfigurationSection {
 
     protected Scalar getScalar(String path) {
         YamlNode node = getNode(path);
-        if (node == null) {
-            return null;
-        }
         if (!(node instanceof Scalar)) {
             return null;
         }
@@ -383,9 +387,6 @@ public class ConfigurationSection implements IConfigurationSection {
 
     protected YamlSequence getSequence(String path) {
         YamlNode node = getNode(path);
-        if (node == null) {
-            return null;
-        }
         if (!(node instanceof YamlSequence)) {
             return null;
         }
@@ -394,9 +395,6 @@ public class ConfigurationSection implements IConfigurationSection {
 
     protected YamlMapping getMapping(String path) {
         YamlNode node = getNode(path);
-        if (node == null) {
-            return null;
-        }
         if (!(node instanceof YamlMapping)) {
             return null;
         }
@@ -425,8 +423,8 @@ public class ConfigurationSection implements IConfigurationSection {
         for (Object obj : list) {
             if (obj instanceof Collection) {
                 builder = builder.add(createSequence((Collection<?>) obj).build());
-            } else if (obj instanceof RootConfigurationSection && ((RootConfigurationSection) obj).isRoot()) {
-                builder = builder.add(((RootConfigurationSection) obj).currentMapping);
+            } else if (obj instanceof ConfigurationSection && ((ConfigurationSection) obj).isRoot()) {
+                builder = builder.add(((ConfigurationSection) obj).currentMapping);
             } else if (obj instanceof String) {
                 builder = builder.add(UnicodeUtils.escape((String) obj));
             } else {

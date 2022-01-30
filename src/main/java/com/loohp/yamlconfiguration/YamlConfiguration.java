@@ -18,6 +18,11 @@ import java.nio.charset.StandardCharsets;
 
 public class YamlConfiguration extends RootConfigurationSection {
 
+    public static void main(String[] args) throws IOException {
+        YamlConfiguration yaml = new YamlConfiguration(new File("D:\\Users\\LOOHP\\Desktop 2\\minecraft\\networkmc\\server1_1_18\\plugins\\HoloMobHealth\\config.yml"));
+        yaml.save();
+    }
+
     private File file;
 
     public YamlConfiguration(File file, boolean guessIndentation, boolean fixValues) throws IOException {
