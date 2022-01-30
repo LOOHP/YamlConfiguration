@@ -5,7 +5,7 @@
     <groupId>com.loohp</groupId>
     <artifactId>YamlConfiguration</artifactId>
     <name>YamlConfiguration</name>
-    <version>1.0.1.2</version>
+    <version>1.0.1.3</version>
 
     <packaging>jar</packaging>
 
