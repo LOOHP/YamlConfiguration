@@ -18,16 +18,15 @@ import java.nio.charset.StandardCharsets;
 
 public class YamlConfiguration extends RootConfigurationSection {
 
-    public static void main(String[] args) throws IOException {
-        YamlConfiguration yaml = new YamlConfiguration(new File("D:\\Users\\LOOHP\\Desktop 2\\minecraft\\networkmc\\server1_1_18\\plugins\\HoloMobHealth\\config.yml"));
-        yaml.save();
-    }
-
     private File file;
+    private boolean guessIndentation;
+    private boolean fixValues;
 
     public YamlConfiguration(File file, boolean guessIndentation, boolean fixValues) throws IOException {
         super(Yaml.createYamlInput(fixValues ? FixerUtils.fixYaml(file) : file, StandardCharsets.UTF_8, guessIndentation).readYamlMapping());
         this.file = file;
+        this.guessIndentation = guessIndentation;
+        this.fixValues = fixValues;
     }
 
     public YamlConfiguration(File file, boolean guessIndentation) throws IOException {
@@ -41,6 +40,8 @@ public class YamlConfiguration extends RootConfigurationSection {
     public YamlConfiguration(InputStream inputStream, boolean guessIndentation, boolean fixValues) throws IOException {
         super(Yaml.createYamlInput(fixValues ? FixerUtils.fixYaml(inputStream) : inputStream, StandardCharsets.UTF_8, guessIndentation).readYamlMapping());
         this.file = null;
+        this.guessIndentation = guessIndentation;
+        this.fixValues = fixValues;
     }
 
     public YamlConfiguration(InputStream inputStream, boolean guessIndentation) throws IOException {
@@ -64,6 +65,7 @@ public class YamlConfiguration extends RootConfigurationSection {
         return file;
     }
 
+    @Override
     public String saveToString() {
         StringWriter writer = new StringWriter();
         try {
@@ -103,7 +105,7 @@ public class YamlConfiguration extends RootConfigurationSection {
 
     public void reload() {
         try {
-            currentMapping = Yaml.createYamlInput(file).readYamlMapping();
+            currentMapping = Yaml.createYamlInput(file, StandardCharsets.UTF_8, guessIndentation).readYamlMapping();
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -93,4 +93,6 @@ public interface IConfigurationSection {
 
     List<Short> getShortList(String path);
 
+    String saveToString();
+
 }

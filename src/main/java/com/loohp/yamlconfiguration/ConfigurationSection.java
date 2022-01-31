@@ -10,6 +10,8 @@ import com.amihaiemil.eoyaml.YamlSequence;
 import com.amihaiemil.eoyaml.YamlSequenceBuilder;
 import com.loohp.yamlconfiguration.utils.UnicodeUtils;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -354,6 +356,17 @@ public class ConfigurationSection implements IConfigurationSection {
             return null;
         }
         return sequence.values().stream().map(each -> Short.parseShort(each.asScalar().value())).collect(Collectors.toList());
+    }
+
+    @Override
+    public String saveToString() {
+        StringWriter writer = new StringWriter();
+        try {
+            Yaml.createYamlPrinter(writer).print(currentMapping);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return writer.toString();
     }
 
     protected void toSubsection(RootConfigurationSection root, String currentPath) {
