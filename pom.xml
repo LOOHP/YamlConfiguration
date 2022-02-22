@@ -130,7 +130,7 @@
         <dependency>
             <groupId>com.github.LOOHP</groupId>
             <artifactId>eo-yaml</artifactId>
-            <version>c9db293ebd</version>
+            <version>eb841f25aa</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
