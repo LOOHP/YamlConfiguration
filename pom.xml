@@ -101,8 +101,8 @@
                 <configuration>
                     <failOnError>false</failOnError>
                     <encoding>ISO-8859-1</encoding>
-                    <doctitle>BlockModelRenderer JavaDocs</doctitle>
-                    <windowtitle>BlockModelRenderer JavaDocs</windowtitle>
+                    <doctitle>YamlConfiguration JavaDocs</doctitle>
+                    <windowtitle>YamlConfiguration JavaDocs</windowtitle>
                     <additionalOptions>
                         <additionalOption>-Xdoclint:none</additionalOption>
                     </additionalOptions>
