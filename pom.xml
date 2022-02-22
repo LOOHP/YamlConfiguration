@@ -132,12 +132,14 @@
             <artifactId>eo-yaml</artifactId>
             <version>eb841f25aa</version>
             <scope>compile</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>5.8.2</version>
             <scope>test</scope>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 </project>
