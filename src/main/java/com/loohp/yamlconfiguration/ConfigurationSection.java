@@ -29,6 +29,7 @@ import com.amihaiemil.eoyaml.YamlNode;
 import com.amihaiemil.eoyaml.YamlSequence;
 import com.amihaiemil.eoyaml.YamlSequenceBuilder;
 import com.loohp.yamlconfiguration.utils.UnicodeUtils;
+import com.loohp.yamlconfiguration.utils.YamlConfigurationException;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -399,15 +400,19 @@ public class ConfigurationSection implements IConfigurationSection {
     }
 
     protected YamlNode getNode(String path) {
-        String[] paths = toPathArray(path);
-        YamlNode node = currentMapping;
-        for (String p : paths) {
-            if (!(node instanceof YamlMapping)) {
-                return null;
+        try {
+            String[] paths = toPathArray(path);
+            YamlNode node = currentMapping;
+            for (String p : paths) {
+                if (!(node instanceof YamlMapping)) {
+                    return null;
+                }
+                node = node.asMapping().value(p);
             }
-            node = node.asMapping().value(p);
+            return node;
+        } catch (Throwable e) {
+            throw new YamlConfigurationException("There is a problem while reading yaml node at \"" + path + "\"", e);
         }
-        return node;
     }
 
     protected Scalar getScalar(String path) {
